@@ -8,10 +8,8 @@ class Popmap():
 		content = data.readlines()
 		content = [x.rstrip('\n') for x in content]
 
-		popmap = dict()
+		self.popmap = dict()
 
 		for line in content:
 			temp = line.split()
-			popmap[temp[0]] = temp[1]
-
-		#print(popmap)
+			self.popmap[temp[0]] = temp[1]

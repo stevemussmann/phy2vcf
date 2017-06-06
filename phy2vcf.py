@@ -13,7 +13,7 @@ def main():
 	input = ComLine(sys.argv[1:])
 	phy = Phylip(input.args.phy)
 	pops = Popmap(input.args.popmap)
-	VCF(phy)
+	VCF(phy,pops,input.args.out)
 main()
 
 raise SystemExit

@@ -19,6 +19,11 @@ class ComLine():
 							default="input.phy",
 							help="Specify a phylip file for input."
 		)
+		parser.add_argument("-o", "--out",
+							dest='out',
+							default="output.txt",
+							help="Specify an output file name."
+		)
 		
 		#check if files exist
 
@@ -27,8 +32,8 @@ class ComLine():
 		self.exists( self.args.popmap )
 		self.exists( self.args.phy )
 
-		print( self.args.popmap )
-		print( self.args.phy )
+		#print( self.args.popmap )
+		#print( self.args.phy )
 
 
 	def exists(self, filename):

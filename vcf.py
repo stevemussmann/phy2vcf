@@ -1,103 +1,80 @@
 from __future__ import print_function
 
-import collections
-from collections import defaultdict
-
 from phylip import Phylip
+from popmap import Popmap
+
+import collections
 import operator
 
 class VCF():
 	'Class for working with VCF files'
 
-	def __init__(self, phy):
-		lookup = {'Y':'C,T', 'R':'A,G', 'W':'A,T', 'S':'G,C', 'K':'T,G', 'M':'C,A', 'A':'A,A', 'T':'T,T', 'C':'C,C', 'G':'G,G'} #dictionary of ambiguity codes
-		print("##fileformat=VCFv4.1")
-		print("##fileDate=20170603")
-		print("##source=pyRAD.v.3.0.66")
-		print("##reference=common_allele_at_each_locus")
-		print("##INFO=<ID=NS,Number=1,Type=Integer,Description=\"Number of Samples With Data\">")
-		print("##INFO=<ID=DP,Number=1,Type=Integer,Description=\"Total Depth\">")
-		print("##INFO=<ID=AF,Number=A,Type=Float,Description=\"Allele Frequency\">")
-		print("##INFO=<ID=AA,Number=1,Type=String,Description=\"Ancestral Allele\">")
-		print("##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">")
-		print("##FORMAT=<ID=GQ,Number=1,Type=Integer,Description=\"Genotype Quality\">")
-		print("##FORMAT=<ID=DP,Number=1,Type=Integer,Description=\"Read Depth\">")
-		print("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT", end='')
+	def __init__(self, phy, popmap,outfile):
+		lookup = {'Y':'C,T', 'R':'A,G', 'W':'A,T', 'S':'G,C', 'K':'T,G', 'M':'C,A', 'A':'A,A', 'T':'T,T', 'C':'C,C', 'G':'G,G'} #dictionary of ambiguity codesi
+		
+		f = open(outfile, 'w')
+
+		f.write("##fileformat=VCFv4.1\n")
+		f.write("##fileDate=20170603\n")
+		f.write("##source=pyRAD.v.3.0.66\n")
+		f.write("##reference=common_allele_at_each_locus\n")
+		f.write("##INFO=<ID=NS,Number=1,Type=Integer,Description=\"Number of Samples With Data\">\n")
+		f.write("##INFO=<ID=DP,Number=1,Type=Integer,Description=\"Total Depth\">\n")
+		f.write("##INFO=<ID=AF,Number=A,Type=Float,Description=\"Allele Frequency\">\n")
+		f.write("##INFO=<ID=AA,Number=1,Type=String,Description=\"Ancestral Allele\">\n")
+		f.write("##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n")
+		f.write("##FORMAT=<ID=GQ,Number=1,Type=Integer,Description=\"Genotype Quality\">\n")
+		f.write("##FORMAT=<ID=DP,Number=1,Type=Integer,Description=\"Read Depth\">\n")
+		f.write("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT")
 
 		od = collections.OrderedDict(sorted(phy.alignment.items()))
 
 		for key, value in od.iteritems():
-			print("\t", end='')
-			print(key, end='')
-		print("")
-
+			f.write("\t")
+			f.write(key)
+		f.write("\n")
 		chromcount=1
 
 		for i in xrange(0, phy.alignLength):
-			#print(i)
-			d = defaultdict(int)
+			d = collections.defaultdict(int)
 			NS=0 #counter for number of samples at which locus is present
 			for ind, seq in od.iteritems():
-				if seq[i] != 'N':
+				if seq[i] != 'N' and seq[i] != '-':
 					NS+=1
-					if seq[i] == 'A' or seq[i] == 'T' or seq[i] == 'G' or seq[i] == 'C':
-						d[seq[i]] +=2
-					elif seq[i] == 'Y':
-						d['C'] +=1
-						d['T'] +=1
-					elif seq[i] == 'R':
-						d['A'] +=1
-						d['G'] +=1
-					elif seq[i] == 'W':
-						d['A'] +=1
-						d['T'] +=1
-					elif seq[i] == 'S':
-						d['G'] +=1
-						d['C'] +=1
-					elif seq[i] == 'K':
-						d['T'] +=1
-						d['G'] +=1
-					elif seq[i] == 'M':
-						d['C'] +=1
-						d['A'] +=1
+					templocus = lookup[seq[i]].split(',')
+					for allele in templocus:
+						d[allele]+=1
 			
 			sorted_d = sorted( d.items(), key=operator.itemgetter(1), reverse=True )
-			#print(sorted_d)
 			
-			temp = defaultdict(int)
+			temp = collections.defaultdict(int)
 			nuclist = list()
 			counter=0
 			for key,value in sorted_d:
 				nuclist.append(key)
 				temp[key] += counter
 				counter+=1
-			print(chromcount, end='')
-			print("\t1\t.\t", end='')
-			#print(temp)
-			print(nuclist.pop(0), end='')
+			f.write(str(chromcount))
+			f.write("\t1\t.\t")
+			f.write(nuclist.pop(0))
 
 			remainder = ",".join(nuclist)
-			print("\t",remainder, end='')
+			f.write("\t")
+			f.write(remainder)
 			
-			print("\t20\tPASS\tNS=", end='')
-			print(NS, end='')
-			print(";DP=15\tGT", end='')
+			f.write("\t20\tPASS\tNS=")
+			f.write(str(NS))
+			f.write(";DP=15\tGT")
 			
 			for ind,seq in od.iteritems():
-				print("\t",end='')
+				f.write("\t")
 				if seq[i] == 'N' or seq[i] == '-':
-						print("./.", end='')
+						f.write("./.")
 				else:
 					alleles = lookup[seq[i]].split(",")
 					alleles[0] = str(temp[alleles[0]])
 					alleles[1] = str(temp[alleles[1]])
-					#print(lookup[seq[i]], end='')
 					tempstring = "|".join(alleles)
-					print(tempstring, end='')
-
-
+					f.write(tempstring)
+			f.write("\n")
 			chromcount+=1
-			print("")
-
-			
-
