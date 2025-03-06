@@ -29,16 +29,16 @@ class VCF():
 
 		od = collections.OrderedDict(sorted(phy.alignment.items()))
 
-		for key, value in od.iteritems():
+		for key, value in od.items():
 			f.write("\t")
 			f.write(key)
 		f.write("\n")
 		chromcount=1
 
-		for i in xrange(0, phy.alignLength):
+		for i in range(0, phy.alignLength):
 			d = collections.defaultdict(int)
 			NS=0 #counter for number of samples at which locus is present
-			for ind, seq in od.iteritems():
+			for ind, seq in od.items():
 				if seq[i] != 'N' and seq[i] != '-':
 					NS+=1
 					templocus = lookup[seq[i]].split(',')
@@ -66,7 +66,7 @@ class VCF():
 			f.write(str(NS))
 			f.write(";DP=15\tGT")
 			
-			for ind,seq in od.iteritems():
+			for ind,seq in od.items():
 				f.write("\t")
 				if seq[i] == 'N' or seq[i] == '-':
 						f.write("./.")
